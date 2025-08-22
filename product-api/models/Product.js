@@ -4,11 +4,13 @@ const { Schema } = mongoose
 const productSchema = new Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, "name is required."],
+    trim: true,
   },
   description: {
     type: String,
-    required: true,
+    required: [true, "description is required."],
+    trim: true,
   },
   price: {
     type: Number,
@@ -16,7 +18,8 @@ const productSchema = new Schema({
   },
   category: {
     type: String,
-    required: true,
+    required: [true, "category is required."],
+    trim: true,
   },
   inStock: {
     type: Boolean,
@@ -25,7 +28,8 @@ const productSchema = new Schema({
   tags: [String],
   createdAt: {
     type: Date,
-    default: new Date(),
+    default: () => Date.now(),
+    immutable: true,
   },
 })
 
