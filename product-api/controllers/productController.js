@@ -64,8 +64,8 @@ const getAllProducts = async (req, res) => {
   const page = req.query.page || 1
   const limit = req.query.limit || 10
 
-  let sortByObject = {}
   try {
+    const sortByObject = {}
     switch (true) {
       case sortBy === "price_asc":
         sortByObject = { price: "asc" }
