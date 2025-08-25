@@ -1,13 +1,13 @@
 const path = require("path")
 const { STATIC_ROOT } = require("../utils")
 
+const Product = require("../models/Product")
 const mockProducts = require("../data/mockProducts")
 
 const createAllPage = path.join(STATIC_ROOT, "createAll.html")
 const deleteAllPage = path.join(STATIC_ROOT, "deleteAll.html")
 
-const Product = require("../models/Product")
-
+// Errors
 class ValueError extends Error {
   constructor(message) {
     super(message)
@@ -15,11 +15,17 @@ class ValueError extends Error {
   }
 }
 
+// HTTP Response Operations
 const handle400 = (res, error) => {
   console.error(`${error.name}: ${error.message}`)
-  res.sendStatus(400)
+  res.status(400).send(`There was a problem with your request: ${error}`)
 }
 
+const handle404 = (res, id, operation) => {
+  res.status(404).send(`${operation} failed: Product with id ${id} not found.`)
+}
+
+// HTTP Request Operations
 const createNewProduct = async (req, res) => {
   try {
     const newProduct = await Product.create(req.body)
@@ -32,6 +38,12 @@ const createNewProduct = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const foundProduct = await Product.findById(req.params.id)
+
+    if (!foundProduct) {
+      handle404(res, req.params.id, "GET")
+      return
+    }
+
     res.json(foundProduct)
   } catch (error) {
     handle400(res, error)
@@ -40,8 +52,19 @@ const getProductById = async (req, res) => {
 
 const updateProductById = async (req, res) => {
   try {
-    await Product.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    res.sendStatus(204)
+    const foundProduct = await Product.findById(req.params.id)
+
+    if (!foundProduct) {
+      handle404(res, req.params.id, "PUT")
+      return
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      foundProduct._id,
+      req.body,
+      { new: true }
+    )
+    res.json(updatedProduct)
   } catch (error) {
     handle400(res, error)
   }
@@ -49,8 +72,15 @@ const updateProductById = async (req, res) => {
 
 const deleteProductById = async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.params.id)
-    res.sendStatus(204)
+    const foundProduct = Product.findById(req.params.id)
+
+    if (!foundProduct) {
+      handle404(res, req.params.id, "DELETE")
+      return
+    }
+
+    await Product.findByIdAndDelete(foundProduct._id)
+    res.send(`Product with id ${foundProduct._id} successfully deleted.`)
   } catch (error) {
     handle400(res, error)
   }
@@ -77,10 +107,10 @@ const getAllProducts = async (req, res) => {
         throw new ValueError('sortBy must be "price_asc" or "price_desc".')
     }
 
-    const findObject = { price: { $gte: minPrice, $lte: maxPrice } }
-    if (category) findObject.category = category
+    const filterObject = { price: { $gte: minPrice, $lte: maxPrice } }
+    if (category) filterObject.category = category
 
-    const products = await Product.find(findObject)
+    const products = await Product.find(filterObject)
       .sort(sortByObject)
       .skip((page - 1) * limit)
       .limit(limit)
@@ -91,6 +121,7 @@ const getAllProducts = async (req, res) => {
   }
 }
 
+// Convenience Functions
 const createAllProducts = async (_req, res) => {
   try {
     await Product.insertMany(mockProducts)
