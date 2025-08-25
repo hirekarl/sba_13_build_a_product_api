@@ -95,7 +95,7 @@ const getAllProducts = async (req, res) => {
 const createAllProducts = async (_req, res) => {
   try {
     await Product.insertMany(mockProducts)
-    console.log(`Products added to database.`)
+    console.log("All mock products added to database.")
     res.sendFile(createAllPage)
   } catch (error) {
     handle400(res, error)
