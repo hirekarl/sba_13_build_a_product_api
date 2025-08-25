@@ -40,7 +40,7 @@ const getProductById = async (req, res) => {
 
 const updateProductById = async (req, res) => {
   try {
-    await Product.findByIdAndUpdate(req.params.id, req.body)
+    await Product.findByIdAndUpdate(req.params.id, req.body, { new: true })
     res.sendStatus(204)
   } catch (error) {
     handle400(res, error)
