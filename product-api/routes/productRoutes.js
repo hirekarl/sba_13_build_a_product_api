@@ -4,8 +4,15 @@ const Product = require("../models/Product")
 
 const router = express.Router()
 
+class ValueError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = "ValueError"
+  }
+}
+
 const handle400 = (res, error) => {
-  console.error(error)
+  console.error(`${error.name}: ${error.message}`)
   res.sendStatus(400)
 }
 
@@ -54,14 +61,26 @@ router.get("/", async (req, res) => {
   const limit = req.query.limit || 10
 
   try {
+    let sortByObject = {}
+    switch (true) {
+      case sortBy === "price_asc":
+        sortByObject = { price: "asc" }
+        break
+      case sortBy === "price_desc":
+        sortByObject = { price: "desc" }
+        break
+      default:
+        throw new ValueError('sortBy must be "price_asc" or "price_desc".')
+    }
+
     const products = await Product.select({
       category: category,
       price: { $gte: minPrice, $lte: maxPrice },
     })
-      .sort(sortBy === "price_asc" ? { price: "asc" } : { price: "desc" })
+      .sort(sortByObject)
       .skip((page - 1) * limit)
       .limit(limit)
-    
+
     res.json(products)
   } catch (error) {
     handle400(res, error)
