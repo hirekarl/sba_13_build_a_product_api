@@ -4,7 +4,7 @@
 2025-RTT-30  
 <time datetime="2025-08-25">2025-08-25</time>  
 
-![Alt text for preview image goes here.](./preview.png)
+![Browser output of /api/products with mock data.](./preview.png)
 
 ## Overview
 ### Viewer Instructions
