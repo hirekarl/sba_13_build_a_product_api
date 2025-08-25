@@ -77,8 +77,7 @@ const getAllProducts = async (req, res) => {
         throw new ValueError('sortBy must be "price_asc" or "price_desc".')
     }
 
-    const findObject = {}
-    findObject.price = { $gte: minPrice, $lte: maxPrice }
+    const findObject = { price: { $gte: minPrice, $lte: maxPrice } }
     if (category) findObject.category = category
 
     const products = await Product.find(findObject)
