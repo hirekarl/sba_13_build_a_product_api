@@ -1,3 +1,11 @@
+const path = require("path")
+const { STATIC_ROOT } = require("../utils")
+
+const mockProducts = require("../data/products")
+
+const createAllPage = path.join(STATIC_ROOT, "createAll.html")
+const deleteAllPage = path.join(STATIC_ROOT, "deleteAll.html")
+
 const Product = require("../models/Product")
 
 class ValueError extends Error {
@@ -49,15 +57,15 @@ const deleteProductById = async (req, res) => {
 }
 
 const getAllProducts = async (req, res) => {
-  const category = req.query.category || {}
+  const category = req.query.category
   const minPrice = req.query.minPrice || 0
   const maxPrice = req.query.maxPrice || Infinity
   const sortBy = req.query.sortBy || "price_asc"
   const page = req.query.page || 1
   const limit = req.query.limit || 10
 
+  let sortByObject = {}
   try {
-    let sortByObject = {}
     switch (true) {
       case sortBy === "price_asc":
         sortByObject = { price: "asc" }
@@ -69,10 +77,11 @@ const getAllProducts = async (req, res) => {
         throw new ValueError('sortBy must be "price_asc" or "price_desc".')
     }
 
-    const products = await Product.select({
-      category: category,
-      price: { $gte: minPrice, $lte: maxPrice },
-    })
+    const findObject = {}
+    findObject.price = { $gte: minPrice, $lte: maxPrice }
+    if (category) findObject.category = category
+
+    const products = await Product.find(findObject)
       .sort(sortByObject)
       .skip((page - 1) * limit)
       .limit(limit)
@@ -83,10 +92,32 @@ const getAllProducts = async (req, res) => {
   }
 }
 
+const createAllProducts = async (_req, res) => {
+  try {
+    await Product.insertMany(mockProducts)
+    console.log(`Products added to database.`)
+    res.sendFile(createAllPage)
+  } catch (error) {
+    handle400(res, error)
+  }
+}
+
+const deleteAllProducts = async (_req, res) => {
+  try {
+    await Product.deleteMany({})
+    console.log("All products deleted from database.")
+    res.sendFile(deleteAllPage)
+  } catch (error) {
+    handle400(res, error)
+  }
+}
+
 module.exports = {
+  getAllProducts,
   createNewProduct,
   getProductById,
   updateProductById,
   deleteProductById,
-  getAllProducts,
+  createAllProducts,
+  deleteAllProducts,
 }

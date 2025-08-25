@@ -1,4 +1,4 @@
-const products = [
+const mockProducts = [
   {
     name: "Duke's Mayo",
     description: "The BEST mayonaise in the world. Fight the power, not me.",
@@ -90,4 +90,4 @@ const products = [
   },
 ]
 
-module.exports = products
+module.exports = mockProducts
