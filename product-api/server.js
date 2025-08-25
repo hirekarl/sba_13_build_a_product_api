@@ -4,15 +4,19 @@ const productRoutes = require("./routes/productRoutes")
 
 const { STATIC_ROOT, PORT } = require("./utils")
 
-const app = express()
+const run = async () => {
+  await connect()
 
-app.use(express.static(STATIC_ROOT))
-app.use(express.json())
+  const app = express()
 
-app.use("/api/products", productRoutes)
+  app.use(express.static(STATIC_ROOT))
+  app.use(express.json())
 
-app.listen(PORT, () => {
-  console.log(`Server started at http://localhost:${PORT}.`)
-})
+  app.use("/api/products", productRoutes)
 
-connect()
+  app.listen(PORT, () => {
+    console.log(`Server started at http://localhost:${PORT}.`)
+  })
+}
+
+run()
