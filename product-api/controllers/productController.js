@@ -68,10 +68,10 @@ const getAllProducts = async (req, res) => {
     const sortByObject = {}
     switch (true) {
       case sortBy === "price_asc":
-        sortByObject = { price: "asc" }
+        sortByObject.price = "asc"
         break
       case sortBy === "price_desc":
-        sortByObject = { price: "desc" }
+        sortByObject.price = "desc"
         break
       default:
         throw new ValueError('sortBy must be "price_asc" or "price_desc".')
