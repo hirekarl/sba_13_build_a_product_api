@@ -1,7 +1,7 @@
 const path = require("path")
 const { STATIC_ROOT } = require("../utils")
 
-const mockProducts = require("../data/products")
+const mockProducts = require("../data/mockProducts")
 
 const createAllPage = path.join(STATIC_ROOT, "createAll.html")
 const deleteAllPage = path.join(STATIC_ROOT, "deleteAll.html")
