@@ -49,12 +49,12 @@ router.get("/", async (req, res) => {
   const category = req.query.category || {}
   const minPrice = req.query.minPrice || 0
   const maxPrice = req.query.maxPrice || Infinity
-  const sortBy = req.query.price || "price_asc"
+  const sortBy = req.query.sortBy || "price_asc"
   const page = req.query.page || 1
   const limit = req.query.limit || 10
 
   try {
-    const products = await Product.find({
+    const products = await Product.select({
       category: category,
       price: { $gte: minPrice, $lte: maxPrice },
     })
