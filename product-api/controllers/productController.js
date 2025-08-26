@@ -17,7 +17,7 @@ class ValueError extends Error {
 
 // HTTP Error Handlers
 const handle400 = (res, error) => {
-  console.error(`${error.name}: ${error.message}`)
+  console.error(error)
   res.status(400).send(`There was a problem with your request: ${error}`)
 }
 
