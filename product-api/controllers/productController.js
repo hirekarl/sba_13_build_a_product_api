@@ -18,7 +18,11 @@ class ValueError extends Error {
 // HTTP Error Handlers
 const handle400 = (res, error) => {
   console.error(error)
-  res.status(400).send(`There was a problem with your request: ${error}`)
+  res
+    .status(400)
+    .send(
+      `There was a problem with your request: ${error.name}: ${error.message}`
+    )
 }
 
 const handle404 = (res, id, operation) => {
@@ -149,7 +153,9 @@ const getAllProducts = async (req, res) => {
         sortByObj[sortByProperty] = "asc"
         break
       default:
-        throw new ValueError('sortBy order must be "asc", "desc", or undefined.')
+        throw new ValueError(
+          'sortBy order must be "asc", "desc", or undefined.'
+        )
     }
 
     // Run query
