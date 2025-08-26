@@ -95,20 +95,44 @@ const getAllProducts = async (req, res) => {
   const limit = req.query.limit || 10
 
   try {
-    const sortByObject = {}
-    switch (true) {
-      case sortBy === "price_asc":
-        sortByObject.price = "asc"
-        break
-      case sortBy === "price_desc":
-        sortByObject.price = "desc"
-        break
-      default:
-        throw new ValueError('sortBy must be "price_asc" or "price_desc".')
-    }
+    if (minPrice < 0) throw new RangeError("price must be at least 0.")
+    if (page < 1) throw new RangeError("page must be at least 1.")
 
     const filterObject = { price: { $gte: minPrice, $lte: maxPrice } }
     if (category) filterObject.category = category
+
+    const [sortByProperty, sortByOrder] = sortBy.split("_")
+    if (
+      ![
+        "name",
+        "description",
+        "price",
+        "category",
+        "inStock",
+        "createdAt",
+      ].includes(sortByProperty)
+    )
+      throw new ValueError(
+        'sortBy property must be one of "name", "description", "price", "category", "inStock", or "createdAt".'
+      )
+
+    const sortByObject = {}
+    switch (true) {
+      case sortByOrder === "asc":
+        sortByObject[sortByProperty] = "asc"
+        break
+      case sortByOrder === "desc":
+        sortByObject[sortByProperty] = "desc"
+        break
+      case !sortByOrder && ["createdAt", "inStock"].includes(sortByProperty):
+        sortByObject[sortByProperty] = "desc"
+        break
+      case !sortByOrder:
+        sortByObject[sortByProperty] = "asc"
+        break
+      default:
+        throw new ValueError('sortBy order must be "asc" or "desc".')
+    }
 
     const products = await Product.find(filterObject)
       .sort(sortByObject)
