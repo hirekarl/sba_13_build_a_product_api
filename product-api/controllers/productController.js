@@ -93,14 +93,30 @@ const getAllProducts = async (req, res) => {
   const sortBy = req.query.sortBy || "price_asc"
   const page = req.query.page || 1
   const limit = req.query.limit || 10
+  const tags = req.query.tags
 
   try {
+    // Sanity checks
     if (minPrice < 0) throw new RangeError("price must be at least 0.")
     if (page < 1) throw new RangeError("page must be at least 1.")
 
-    const filterObject = { price: { $gte: minPrice, $lte: maxPrice } }
-    if (category) filterObject.category = category
+    // Construct filter
+    const filterObj = { price: { $gte: minPrice, $lte: maxPrice } }
+    if (category) filterObj.category = category
+    if (tags) filterObj.tags = { $in: tags.split(",") }
 
+    // Construct sort
+    //
+    // NB: sortBy query param expects <sortByProperty>_<sortByOrder>,
+    // where sortByProperty is one of "name", "description",
+    // "price", "category", "inStock", "createdAt"
+    // and sortByOrder is one of "asc" or "desc",
+    // e.g., "price_asc" or "category_desc".
+    //
+    // "createdAt" and "inStock" properties default to "desc"
+    // in the absence of a given sortByOrder value;
+    // all other properties default to "asc" in the absence
+    // of a given sortByOrder value.
     const [sortByProperty, sortByOrder] = sortBy.split("_")
     if (
       ![
@@ -116,29 +132,33 @@ const getAllProducts = async (req, res) => {
         'sortBy property must be one of "name", "description", "price", "category", "inStock", or "createdAt".'
       )
 
-    const sortByObject = {}
+    const sortByObj = {}
     switch (true) {
       case sortByOrder === "asc":
-        sortByObject[sortByProperty] = "asc"
+        sortByObj[sortByProperty] = "asc"
         break
       case sortByOrder === "desc":
-        sortByObject[sortByProperty] = "desc"
+        sortByObj[sortByProperty] = "desc"
         break
+      // Default to "desc" for createdAt and inStock if no sortByOrder given
       case !sortByOrder && ["createdAt", "inStock"].includes(sortByProperty):
-        sortByObject[sortByProperty] = "desc"
+        sortByObj[sortByProperty] = "desc"
         break
+      // Default to "asc" for other fields if no sortByOrder given
       case !sortByOrder:
-        sortByObject[sortByProperty] = "asc"
+        sortByObj[sortByProperty] = "asc"
         break
       default:
-        throw new ValueError('sortBy order must be "asc" or "desc".')
+        throw new ValueError('sortBy order must be "asc", "desc", or undefined.')
     }
 
-    const products = await Product.find(filterObject)
-      .sort(sortByObject)
+    // Run query
+    const products = await Product.find(filterObj)
+      .sort(sortByObj)
       .skip((page - 1) * limit)
       .limit(limit)
 
+    // Return results
     res.json(products)
   } catch (error) {
     handle400(res, error)
